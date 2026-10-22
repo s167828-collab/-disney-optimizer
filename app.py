@@ -26,10 +26,10 @@ if "history" not in st.session_state:
 
 # מאגר המתקנים והמיקומים
 RIDE_LOCATIONS = {
-    "big_thunder_mountain": {"name": "Big Thunder Mountain", "lat": 48.8712, "lon": 2.7752, "park": "Disneyland Park", "best_hours": "ערב/בוקר מוקדם"},
-    "hyperspace_mountain": {"name": "Space Mountain", "lat": 48.8745, "lon": 2.7798, "park": "Disneyland Park", "best_hours": "זמן תהלוכה/ערב"},
-    "peter_pan": {"name": "Peter Pan's Flight", "lat": 48.8743, "lon": 2.7761, "park": "Disneyland Park", "best_hours": "שעה ראשונה/אחרונה"},
-    "pirates": {"name": "Pirates of the Caribbean", "lat": 48.8748, "lon": 2.7735, "park": "Disneyland Park", "best_hours": "צהריים/כל היום"},
+    "big_thunder_mountain": {"name": "Big Thunder Mountain", "lat": 48.8712, "lon": 2.7752, "park": "Disneyland Park", "best_hours": "ערב או בוקר מוקדם"},
+    "hyperspace_mountain": {"name": "Space Mountain", "lat": 48.8745, "lon": 2.7798, "park": "Disneyland Park", "best_hours": "זמן תהלוכה או ערב"},
+    "peter_pan": {"name": "Peter Pan's Flight", "lat": 48.8743, "lon": 2.7761, "park": "Disneyland Park", "best_hours": "שעה ראשונה או אחרונה"},
+    "pirates": {"name": "Pirates of the Caribbean", "lat": 48.8748, "lon": 2.7735, "park": "Disneyland Park", "best_hours": "צהריים או כל היום"},
     "buzz": {"name": "Buzz Lightyear Laser", "lat": 48.8740, "lon": 2.7792, "park": "Disneyland Park", "best_hours": "אחר הצהריים"},
     "ratatouille": {"name": "Ratatouille: The Adventure", "lat": 48.8668, "lon": 2.7778, "park": "Walt Disney Studios", "best_hours": "בוקר מוקדם"},
     "tower_of_terror": {"name": "Tower of Terror", "lat": 48.8681, "lon": 2.7790, "park": "Walt Disney Studios", "best_hours": "ערב"},
@@ -66,10 +66,8 @@ for k, v in live_wait_times.items():
     if k not in st.session_state.history:
         st.session_state.history[k] = []
     st.session_state.history[k].append((current_time, v))
-    st.session_state.history[k] = [item for item in st.session_state.history[k] if current_time - item 
-            <b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes} דקות המתנה בלבד!</b>
-        </div>
-        """, unsafe_allow_index=True)
+    st.session_state.history[k] = [item for item in st.session_state.history[k] if current_time - item <b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes} דקות המתנה בלבד!</b></div>'
+        st.markdown(html_alert, unsafe_allow_index=True)
         alert_triggered = True
 
 if alert_triggered:
@@ -105,15 +103,15 @@ if loc:
                     wait_time = minutes
                     break
             
-            trend_icon = "Stable"
+            trend_icon = "Yatziv"
             history_list = st.session_state.history.get(key, [])
             if len(history_list) > 1:
                 old_wait = history_list[0][1]
                 if wait_time < old_wait:
-                    trend_icon = "התור בירידה!"
+                    trend_icon = "Down"
                     wait_time -= 3
                 elif wait_time > old_wait:
-                    trend_icon = "התור בעלייה"
+                    trend_icon = "Up"
                     wait_time += 3
             
             distance = calculate_distance(user_lat, user_lon, ride["lat"], ride["lon"])
@@ -145,23 +143,12 @@ if loc:
                     best_combo_partner = other
             
             if best_combo_partner:
-                st.markdown(f"""
-                <div class="combo-card">
-                    <b>תוכנית פעולה מנצחת לשעה הקרובה:</b><br>
-                    1. לכו עכשיו ל-<b>{best_ride['name']}</b> ({best_ride['wait']} דק' תור + {best_ride['walk']} דק' הליכה ממכם).<br>
-                    2. מיד כשאתם יוצאים, המשיכו ישירות ל-<b>{best_combo_partner['name']}</b> שנמצא ממש צמוד אליו!
-                </div>
-                """, unsafe_allow_index=True)
+                html_combo = f'<div class="combo-card"><b>תוכנית פעולה מנצחת לשעה הקרובה:</b><br>1. לכו עכשיו ל-<b>{best_ride["name"]}</b> ({best_ride["wait"]} דק תור).<br>2. מיד כשאתם יוצאים, המשיכו ישירות ל-<b>{best_combo_partner["name"]}</b> שנמצא ממש צמוד אליו!</div>'
+                st.markdown(html_combo, unsafe_allow_index=True)
             
             st.markdown("### מדד כדאיות שאר המתקנים:")
             for res in sorted_rides:
-                st.markdown(f"""
-                <div class="ride-card">
-                    <b>{res['name']}</b> ({res['park']})<br>
-                    זמן המתנה: <b>{res['wait']} דק'</b> ({res['trend']})<br>
-                    הליכה אליו: <b>{res['walk']} דק'</b><br>
-                    שעות הכי פחות עמוסות בדרך כלל: <u>{res['tip']}</u>
-                </div>
-                """, unsafe_allow_index=True)
+                html_card = f'<div class="ride-card"><b>{res["name"]}</b> ({res["park"]})<br>זמן המתנה: <b>{res["wait"]} דק</b> ({res["trend"]})<br>הליכה אליו: <b>{res['walk']} דק</b><br>שעות הכי פחות עמוסות: {res["tip"]}</div>'
+                st.markdown(html_card, unsafe_allow_index=True)
 else:
     st.info("אנא אשר גישת GPS בנייד כדי שהמערכת תחשב ותבנה לך את מסלולי ה-Combo החכמים.")
