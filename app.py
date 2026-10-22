@@ -19,9 +19,6 @@ st.markdown("""
 st.title("Disneyland VIP Router")
 st.caption("מנווט אסטרטגי עוקף תורים")
 
-if "history" not in st.session_state:
-    st.session_state.history = {}
-
 RIDE_LOCATIONS = {
     "big_thunder_mountain": {"name": "Big Thunder Mountain", "lat": 48.8712, "lon": 2.7752, "park": "Disneyland Park", "best_hours": "ערב או בוקר מוקדם"},
     "hyperspace_mountain": {"name": "Space Mountain", "lat": 48.8745, "lon": 2.7798, "park": "Disneyland Park", "best_hours": "זמן תהלוכה או ערב"},
@@ -57,16 +54,12 @@ def get_all_live_data():
     return wait_times
 
 live_wait_times = get_all_live_data()
-current_time = time.time()
 
-for k, v in live_wait_times.items():
-    if k not in st.session_state.history:
-        st.session_state.history[k] = []
-    st.session_state.history[k].append((current_time, v))
-
-# ניקוי היסטוריה ישנה
-for k in st.session_state.history:
-    st.session_state.history[k] = [item for item in st.session_state.history[k] if current_time - item[0] <b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes}</b> דקות המתנה בלבד!</div>', unsafe_allow_index=True)
+st.markdown("### התראות בזק חמות")
+alert_triggered = False
+for entity_name, minutes in live_wait_times.items():
+    if minutes <= 5:
+        st.markdown(f'<div class="alert-card"><b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes}</b> דקות המתנה בלבד!</div>', unsafe_allow_index=True)
         alert_triggered = True
 
 if not alert_triggered:
@@ -98,17 +91,6 @@ if loc:
                     wait_time = minutes
                     break
             
-            trend_icon = "Yatziv"
-            history_list = st.session_state.history.get(key, [])
-            if len(history_list) > 1:
-                old_wait = history_list[0][1]
-                if wait_time < old_wait:
-                    trend_icon = "Down"
-                    wait_time -= 3
-                elif wait_time > old_wait:
-                    trend_icon = "Up"
-                    wait_time += 3
-            
             distance = calculate_distance(user_lat, user_lon, ride["lat"], ride["lon"])
             walk_time = (distance / 1.2) / 60
             total_score = wait_time + walk_time
@@ -116,7 +98,7 @@ if loc:
             processed_rides.append({
                 "key": key, "name": ride["name"], "park": ride["park"],
                 "wait": wait_time, "walk": round(walk_time), "score": total_score,
-                "trend": trend_icon, "tip": ride["best_hours"], "lat": ride["lat"], "lon": ride["lon"]
+                "tip": ride["best_hours"], "lat": ride["lat"], "lon": ride["lon"]
             })
             
         if processed_rides:
@@ -140,6 +122,6 @@ if loc:
             
             st.markdown("### מדד כדאיות שאר המתקנים:")
             for res in sorted_rides:
-                st.markdown(f'<div class="ride-card"><b>{res["name"]}</b> ({res["park"]})<br>זמן המתנה משוער: <b>{res["wait"]} דקות</b> ({res["trend"]})<br>זמן הליכה משוער: <b>{res["walk"]} דקות</b><br>שעות מומלצות בדרך כלל: {res["tip"]}</div>', unsafe_allow_index=True)
+                st.markdown(f'<div class="ride-card"><b>{res["name"]}</b> ({res["park"]})<br>זמן המתנה משוער: <b>{res["wait"]} דקות</b><br>זמן הליכה משוער: <b>{res["walk"]} דקות</b><br>שעות מומלצות בדרך כלל: {res["tip"]}</div>', unsafe_allow_index=True)
 else:
     st.info("אנא אשר גישת GPS בנייד כדי שהמערכת תחשב ותבנה לך את מסלולי ה-Combo החכמים.")
