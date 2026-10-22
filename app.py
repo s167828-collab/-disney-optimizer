@@ -6,25 +6,22 @@ from streamlit_js_eval import get_geolocation
 
 st.set_page_config(page_title="Disneyland Pro Master", page_icon="v", layout="centered")
 
-# עיצוב מתקדם לנייד
 st.markdown("""
     <style>
     .main { background-color: #f4f6f9; }
     .stButton>button { width: 100%; border-radius: 12px; height: 3.2em; font-size: 16px; font-weight: bold; background-color: #1E3A8A; color: white; }
-    .ride-card { padding: 15px; border-radius: 12px; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; border-right: 6px solid #3B82F6; }
-    .combo-card { padding: 15px; border-radius: 12px; background-color: #ECFDF5; border-right: 6px solid #10B981; margin-bottom: 15px; }
-    .alert-card { padding: 15px; border-radius: 12px; background-color: #FEF3C7; border-right: 6px solid #D97706; margin-bottom: 15px; }
+    .ride-card { padding: 15px; border-radius: 12px; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; border-right: 6px solid #3B82F6; text-align: right; direction: rtl; }
+    .combo-card { padding: 15px; border-radius: 12px; background-color: #ECFDF5; border-right: 6px solid #10B981; margin-bottom: 15px; text-align: right; direction: rtl; }
+    .alert-card { padding: 15px; border-radius: 12px; background-color: #FEF3C7; border-right: 6px solid #D97706; margin-bottom: 15px; text-align: right; direction: rtl; }
     </style>
 """, unsafe_allow_index=True)
 
 st.title("Disneyland VIP Router")
-st.caption("גרסה אסטרטגית מורחבת למניעת תורים ומקסום זמן")
+st.caption("מנווט אסטרטגי עוקף תורים")
 
-# שמירת היסטוריית תורים קצרה בזיכרון האפליקציה לצורך חיזוי מגמה
 if "history" not in st.session_state:
     st.session_state.history = {}
 
-# מאגר המתקנים והמיקומים
 RIDE_LOCATIONS = {
     "big_thunder_mountain": {"name": "Big Thunder Mountain", "lat": 48.8712, "lon": 2.7752, "park": "Disneyland Park", "best_hours": "ערב או בוקר מוקדם"},
     "hyperspace_mountain": {"name": "Space Mountain", "lat": 48.8745, "lon": 2.7798, "park": "Disneyland Park", "best_hours": "זמן תהלוכה או ערב"},
@@ -59,26 +56,25 @@ def get_all_live_data():
             pass
     return wait_times
 
-# עדכון היסטוריה לצורך זיהוי מגמות
 live_wait_times = get_all_live_data()
 current_time = time.time()
+
 for k, v in live_wait_times.items():
     if k not in st.session_state.history:
         st.session_state.history[k] = []
     st.session_state.history[k].append((current_time, v))
-    st.session_state.history[k] = [item for item in st.session_state.history[k] if current_time - item <b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes} דקות המתנה בלבד!</b></div>'
-        st.markdown(html_alert, unsafe_allow_index=True)
+
+# ניקוי היסטוריה ישנה
+for k in st.session_state.history:
+    st.session_state.history[k] = [item for item in st.session_state.history[k] if current_time - item[0] <b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes}</b> דקות המתנה בלבד!</div>', unsafe_allow_index=True)
         alert_triggered = True
 
-if alert_triggered:
-    st.components.v1.html('<audio autoplay><source src="https://mixkit.co" type="audio/wav"></audio>', height=0)
-else:
+if not alert_triggered:
     st.caption("אין כרגע מתקנים מתחת ל-5 דקות. המנוע סורק ברקע...")
 
 st.write("---")
-
-# --- 2. מנוע הניווט והאופטימיזציה ---
 st.subheader("מנוע החישוב האסטרטגי")
+
 loc = get_geolocation()
 
 if loc:
@@ -96,7 +92,6 @@ if loc:
         
         for key in selected_keys:
             ride = RIDE_LOCATIONS[key]
-            
             wait_time = 15
             for api_name, minutes in live_wait_times.items():
                 if key in api_name or ride["name"].lower()[:6] in api_name:
@@ -126,10 +121,9 @@ if loc:
             
         if processed_rides:
             sorted_rides = sorted(processed_rides, key=lambda x: x["score"])
-            
-            st.markdown("### המסלול המשולב הכי משתלם (ה-Combo):")
             best_ride = sorted_rides[0]
             
+            st.markdown("### המסלול המשולב הכי משתלם (ה-Combo):")
             best_combo_partner = None
             min_combo_score = float('inf')
             
@@ -137,18 +131,15 @@ if loc:
                 dist_between = calculate_distance(best_ride["lat"], best_ride["lon"], other["lat"], other["lon"])
                 walk_between = (dist_between / 1.2) / 60
                 combo_score = other["wait"] + walk_between
-                
                 if combo_score < min_combo_score:
                     min_combo_score = combo_score
                     best_combo_partner = other
             
             if best_combo_partner:
-                html_combo = f'<div class="combo-card"><b>תוכנית פעולה מנצחת לשעה הקרובה:</b><br>1. לכו עכשיו ל-<b>{best_ride["name"]}</b> ({best_ride["wait"]} דק תור).<br>2. מיד כשאתם יוצאים, המשיכו ישירות ל-<b>{best_combo_partner["name"]}</b> שנמצא ממש צמוד אליו!</div>'
-                st.markdown(html_combo, unsafe_allow_index=True)
+                st.markdown(f'<div class="combo-card"><b>תוכנית פעולה מנצחת לשעה הקרובה:</b><br>1. לכו עכשיו ל-<b>{best_ride["name"]}</b> ({best_ride["wait"]} דקות תור).<br>2. מיד כשאתם יוצאים, המשיכו ישירות ל-<b>{best_combo_partner["name"]}</b> שנמצא ממש צמוד אליו!</div>', unsafe_allow_index=True)
             
             st.markdown("### מדד כדאיות שאר המתקנים:")
             for res in sorted_rides:
-                html_card = f'<div class="ride-card"><b>{res["name"]}</b> ({res["park"]})<br>זמן המתנה: <b>{res["wait"]} דק</b> ({res["trend"]})<br>הליכה אליו: <b>{res['walk']} דק</b><br>שעות הכי פחות עמוסות: {res["tip"]}</div>'
-                st.markdown(html_card, unsafe_allow_index=True)
+                st.markdown(f'<div class="ride-card"><b>{res["name"]}</b> ({res["park"]})<br>זמן המתנה משוער: <b>{res["wait"]} דקות</b> ({res["trend"]})<br>זמן הליכה משוער: <b>{res["walk"]} דקות</b><br>שעות מומלצות בדרך כלל: {res["tip"]}</div>', unsafe_allow_index=True)
 else:
     st.info("אנא אשר גישת GPS בנייד כדי שהמערכת תחשב ותבנה לך את מסלולי ה-Combo החכמים.")
