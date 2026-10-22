@@ -14,7 +14,7 @@ st.markdown("""
     .combo-card { padding: 15px; border-radius: 12px; background-color: #ECFDF5; border-right: 6px solid #10B981; margin-bottom: 15px; text-align: right; direction: rtl; }
     .alert-card { padding: 15px; border-radius: 12px; background-color: #FEF3C7; border-right: 6px solid #D97706; margin-bottom: 15px; text-align: right; direction: rtl; }
     </style>
-""", unsafe_allow_index=True)
+""", unsafe_allow_html=True)
 
 st.title("Disneyland VIP Router")
 st.caption("מנווט אסטרטגי עוקף תורים")
@@ -59,7 +59,7 @@ st.markdown("### התראות בזק חמות")
 alert_triggered = False
 for entity_name, minutes in live_wait_times.items():
     if minutes <= 5:
-        st.markdown(f'<div class="alert-card"><b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes}</b> דקות המתנה בלבד!</div>', unsafe_allow_index=True)
+        st.markdown(f'<div class="alert-card"><b>הזדמנות חטופה!</b> המתקן <b>{entity_name.title()}</b> פנוי לחלוטין: <b>{minutes}</b> דקות המתנה בלבד!</div>', unsafe_allow_html=True)
         alert_triggered = True
 
 if not alert_triggered:
@@ -118,10 +118,10 @@ if loc:
                     best_combo_partner = other
             
             if best_combo_partner:
-                st.markdown(f'<div class="combo-card"><b>תוכנית פעולה מנצחת לשעה הקרובה:</b><br>1. לכו עכשיו ל-<b>{best_ride["name"]}</b> ({best_ride["wait"]} דקות תור).<br>2. מיד כשאתם יוצאים, המשיכו ישירות ל-<b>{best_combo_partner["name"]}</b> שנמצא ממש צמוד אליו!</div>', unsafe_allow_index=True)
+                st.markdown(f'<div class="combo-card"><b>תוכנית פעולה מנצחת לשעה הקרובה:</b><br>1. לכו עכשיו ל-<b>{best_ride["name"]}</b> ({best_ride["wait"]} דקות תור).<br>2. מיד כשאתם יוצאים, המשיכו ישירות ל-<b>{best_combo_partner["name"]}</b> שנמצא ממש צמוד אליו!</div>', unsafe_allow_html=True)
             
             st.markdown("### מדד כדאיות שאר המתקנים:")
             for res in sorted_rides:
-                st.markdown(f'<div class="ride-card"><b>{res["name"]}</b> ({res["park"]})<br>זמן המתנה משוער: <b>{res["wait"]} דקות</b><br>זמן הליכה משוער: <b>{res["walk"]} דקות</b><br>שעות מומלצות בדרך כלל: {res["tip"]}</div>', unsafe_allow_index=True)
+                st.markdown(f'<div class="ride-card"><b>{res["name"]}</b> ({res["park"]})<br>זמן המתנה משוער: <b>{res["wait"]} דקות</b><br>זמן הליכה משוער: <b>{res["walk"]} דקות</b><br>שעות מומלצות בדרך כלל: {res["tip"]}</div>', unsafe_allow_html=True)
 else:
     st.info("אנא אשר גישת GPS בנייד כדי שהמערכת תחשב ותבנה לך את מסלולי ה-Combo החכמים.")
